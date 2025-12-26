@@ -100,8 +100,26 @@ local function generate_java_file(buf, type, package_buf, class_buf)
     end
 end
 
+local function nvim_java_incremental_build()
+    local runner = require("async.runner")
+
+    runner(function()
+            local lsp_utils = require("java-core.utils.lsp")
+            local JdtlsClient = require("java-core.ls.clients.jdtls-client")
+            local client = JdtlsClient(lsp_utils.get_jdtls())
+
+            local status = client:java_build_workspace(false, 0)
+            vim.notify(status == 1 and "Build OK" or "Build failed", vim.log.levels.INFO)
+        end)
+        .catch(function(err)
+            vim.notify("Build error: " .. tostring(err), vim.log.levels.ERROR)
+        end)
+        .run()
+end
+
 return {
     get_spring_boot_project_root = get_spring_boot_project_root,
     find_main_application_class_directory = find_main_application_class_directory,
     generate_java_file = generate_java_file,
+    nvim_java_incremental_build = nvim_java_incremental_build,
 }
