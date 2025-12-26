@@ -20,7 +20,7 @@ end
 local function draw_border(width, height)
     local border_table = { "╭" .. string.rep("─", width) .. "╮" }
     local middle = "│" .. string.rep(" ", width) .. "│"
-    for i = 1, height do
+    for _ = 1, height do
         table.insert(border_table, middle)
     end
     table.insert(border_table, "╰" .. string.rep("─", width) .. "╯")
@@ -34,9 +34,9 @@ local function draw_popup(width, height, row, col, header)
 
     -- Setup the buffers
     border_buf = api.nvim_create_buf(false, true)
-    api.nvim_buf_set_option(border_buf, "filetype", "springbootnvim")
+    api.nvim_set_option_value("filetype", "springbootnvim", { buf = border_buf })
     popup_buf = api.nvim_create_buf(false, true)
-    api.nvim_buf_set_option(popup_buf, "filetype", "springbootnvim")
+    api.nvim_set_option_value("filetype", "springbootnvim", { buf = popup_buf })
 
     local border_opts = {
         style = "minimal",
@@ -75,10 +75,10 @@ local function draw_popup(width, height, row, col, header)
 end
 
 local function draw_labeled_input(width, height, row, col, label, popup_buf, value)
-    -- Generate the lable text and input border
+    -- Generate the label text and input border
     local input_border = draw_border(width, height)
     local label_text = {}
-    local label_len = string.len(label)
+    -- local label_len = string.len(label)
     table.insert(label_text, string.rep(" ", 12) .. input_border[1])
     table.insert(label_text, label .. string.rep(" ", (12 - string.len(label))) .. input_border[2])
     table.insert(label_text, string.rep(" ", 12) .. input_border[3])
@@ -87,7 +87,7 @@ local function draw_labeled_input(width, height, row, col, label, popup_buf, val
 
     -- Create the input window and buffer
     local input_buf = api.nvim_create_buf(false, true)
-    api.nvim_buf_set_option(input_buf, "filetype", "sprintbootnvim")
+    api.nvim_set_option_value("filetype", "sprintbootnvim", { buf = input_buf })
 
     local opts = {
         style = "minimal",

@@ -5,6 +5,11 @@ local start_buf
 local windows
 local bufs
 
+---@diagnostic disable: different-requires
+local utils = require("springboot-nvim.utils")
+local ui_utils = require("springboot-nvim.ui.ui_utils")
+local springboot_nvim_ui = require("springboot-nvim.ui.springboot_nvim_ui")
+
 local class_boiler_plate = "package %s;\n\npublic class %s{\n\n}"
 
 local function generate_class()
@@ -58,11 +63,17 @@ local function generate_class()
             print("Class already exists in package")
             java_file:close()
         else
-            java_file = io.open(root_path .. "/" .. package_path .. class_content .. ".java", "w")
+            local path = root_path .. "/" .. package_path .. class_content .. ".java"
+            java_file = io.open(path, "w")
+
+            if not java_file then
+                print("Failed to create Java file")
+                return
+            end
+
             java_file:write(java_file_content)
             java_file:close()
-            close_generate_class()
-            local path = root_path .. "/" .. package_path .. class_content .. ".java"
+            springboot_nvim_ui.close_generate_class()
             vim.cmd("edit " .. vim.fn.fnameescape(path))
         end
     else
@@ -73,7 +84,7 @@ end
 local function create_package_ui(row, col, width, height, file_path)
     local package_buf = api.nvim_create_buf(false, true)
     --api.nvim_buf_set_option(package_buf, 'bufhidden', 'wipe')
-    api.nvim_buf_set_option(package_buf, "filetype", "springbootnvim")
+    api.nvim_set_option_value("filetype", "springbootnvim", { buf = package_buf })
 
     local opts = {
         style = "minimal",
@@ -84,7 +95,7 @@ local function create_package_ui(row, col, width, height, file_path)
         col = col,
         zindex = 102,
     }
-    local package = package_text(file_path)
+    local package = ui_utils.package_text(file_path)
     api.nvim_buf_set_lines(package_buf, 0, -1, false, { package })
     local package_win = api.nvim_open_win(package_buf, true, opts)
 
@@ -100,14 +111,14 @@ local function create_ui(bufnr)
     -- Get the file from where the generate class was called from
     start_buf = vim.fn.bufname(bufnr)
     local file_path = vim.fn.fnamemodify(start_buf, ":p")
-    local project_root = get_spring_boot_project_root(file_path)
-    local main_class_dir = find_main_application_class_directory(project_root)
+    local project_root = utils.get_spring_boot_project_root(file_path)
+    local main_class_dir = utils.find_main_application_class_directory(project_root)
     windows = {}
     bufs = {}
     -- Create buffer for popup
     buf = api.nvim_create_buf(false, true)
     table.insert(bufs, buf)
-    api.nvim_buf_set_option(buf, "bufhidden", "wipe")
+    api.nvim_set_option_value("bufhidden", "wipe", { buf = buf })
     local border_buf = api.nvim_create_buf(false, true)
     table.insert(bufs, border_buf)
     --api.nvim_buf_set_option(border_buf, 'bufhidden', 'wipe')
@@ -138,7 +149,7 @@ local function create_ui(bufnr)
         zindex = 100,
     }
 
-    local outline = draw_border(width, height)
+    local outline = ui_utils.sdraw_border(width, height)
     api.nvim_buf_set_lines(border_buf, 0, -1, false, outline)
 
     local border_win = api.nvim_open_win(border_buf, true, border_opts)
@@ -149,14 +160,14 @@ local function create_ui(bufnr)
 
     --api.nvim_win_set_option(win, 'cursorline', true)
 
-    api.nvim_buf_set_lines(buf, 0, -1, false, { center_text("Generate Class") })
-    local package_section = draw_package_section()
+    api.nvim_buf_set_lines(buf, 0, -1, false, { ui_utils.center_text("Generate Class") })
+    local package_section = ui_utils.draw_package_section()
     api.nvim_buf_set_lines(buf, 1, -1, false, package_section)
-    local class_section = draw_class_section()
+    local class_section = ui_utils.draw_class_section()
     api.nvim_buf_set_lines(buf, 5, -1, false, class_section)
-    api.nvim_buf_set_lines(buf, 8, -1, false, { center_text("Confirm selections with <Enter>") })
+    api.nvim_buf_set_lines(buf, 8, -1, false, { ui_utils.center_text("Confirm selections with <Enter>") })
     local package_area = create_package_ui(row + 2, col + 10, 48, 1, main_class_dir)
-    local class_area = create_class_ui(row + 5, col + 10, 25, 1)
+    -- local class_area = ui_utils.create_class_ui(row + 5, col + 10, 25, 1)
     api.nvim_set_current_win(package_area.win)
     local first_line = vim.fn.getline(1, 1)
     local first_line_length = string.len(first_line[1])
@@ -167,8 +178,8 @@ end
 
 return {
     create_ui = create_ui,
-    close_generate_class = close_generate_class,
-    navigate_to_class = navigate_to_class,
-    navigate_to_package = navigate_to_package,
+    close_generate_class = springboot_nvim_ui.close_generate_class,
+    navigate_to_class = springboot_nvim_ui.navigate_to_class,
+    navigate_to_package = springboot_nvim_ui.navigate_to_package,
     generate_class = generate_class,
 }
