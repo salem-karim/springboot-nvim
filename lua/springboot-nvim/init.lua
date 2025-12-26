@@ -11,10 +11,10 @@ local function incremental_compile()
     jdtls.compile("incremental", on_compile_result)
 end
 
-local function is_plugin_installed(plugin)
-    local status, _ = pcall(require, plugin)
-    return status
-end
+-- local function is_plugin_installed(plugin)
+--     local status, _ = pcall(require, plugin)
+--     return status
+-- end
 
 local function get_spring_boot_project_root()
     local current_file = vim.fn.expand("%:p")
@@ -25,7 +25,7 @@ local function get_spring_boot_project_root()
 
     local root_pattern = { "pom.xml", "build.gradle", "build.gradle.kts", ".git" }
 
-    local root_dir = lspconfig.util.root_pattern(unpack(root_pattern))(current_file)
+    local root_dir = lspconfig.util.root_pattern(table.unpack(root_pattern))(current_file)
     if not root_dir then
         print("Project root not found.")
         return nil
@@ -104,7 +104,7 @@ local function get_java_package(file_path)
 
         local package = ""
 
-        for i = 3, table.getn(t) - 1 do
+        for i = 3, #t - 1 do
             package = package .. "." .. t[i]
         end
 
@@ -135,34 +135,34 @@ end
 local function setup(opts)
     on_compile_result = opts.on_compile_result
 
-    vim.api.nvim_exec(
+    vim.api.nvim_exec2(
         [[
     augroup JavaAutoCommands
         autocmd!
         autocmd BufWritePost *.java lua require('springboot-nvim').incremental_compile()
     augroup END
 ]],
-        false
+        { output = true }
     )
 
-    vim.api.nvim_exec(
+    vim.api.nvim_exec2(
         [[
     augroup JavaPackageDetails
     autocmd!
     autocmd BufReadPost *.java lua require('springboot-nvim').fill_package_details()
     augroup END
 ]],
-        false
+        { output = false }
     )
 
-    vim.api.nvim_exec(
+    vim.api.nvim_exec2(
         [[
   augroup ClosePluginBuffers
     autocmd!
     autocmd FileType springbootnvim autocmd QuitPre * lua require('springboot-nvim').close_ui()
   augroup END
 ]],
-        false
+        { output = false }
     )
 end
 
@@ -171,7 +171,7 @@ return {
     boot_run = boot_run,
     incremental_compile = incremental_compile,
     fill_package_details = fill_package_details,
-    foo = foo,
+    -- foo = foo,
     create_ui = generate_class.create_ui,
     close_ui = springboot_nvim_ui.close_ui,
     generate_class = springboot_nvim_ui.create_generate_class_ui,

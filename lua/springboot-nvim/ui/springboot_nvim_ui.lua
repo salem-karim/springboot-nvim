@@ -212,7 +212,7 @@ local function create_generate_class_ui()
         return
     end
 
-    local project_root = utils.get_spring_boot_project_root(vim.fn.fnamemodify(bufnr, ":p"))
+    local project_root = utils.get_spring_boot_project_root(vim.fn.fnamemodify(tostring(bufnr), ":p"))
     local main_class = utils.find_main_application_class_directory(project_root)
     local width = 60
     local height = 9
@@ -279,7 +279,7 @@ local function create_generate_record_ui()
         return
     end
 
-    local project_root = utils.get_spring_boot_project_root(vim.fn.fnamemodify(bufnr, ":p"))
+    local project_root = utils.get_spring_boot_project_root(vim.fn.fnamemodify(tostring(bufnr), ":p"))
     local main_class = utils.find_main_application_class_directory(project_root)
     local width = 60
     local height = 9
@@ -345,7 +345,7 @@ local function create_generate_interface_ui()
         return
     end
 
-    local project_root = utils.get_spring_boot_project_root(vim.fn.fnamemodify(bufnr, ":p"))
+    local project_root = utils.get_spring_boot_project_root(vim.fn.fnamemodify(tostring(bufnr), ":p"))
     local main_class = utils.find_main_application_class_directory(project_root)
     local width = 60
     local height = 9
@@ -411,7 +411,7 @@ local function create_generate_enum_ui()
         return
     end
 
-    local project_root = utils.get_spring_boot_project_root(vim.fn.fnamemodify(bufnr, ":p"))
+    local project_root = utils.get_spring_boot_project_root(vim.fn.fnamemodify(tostring(bufnr), ":p"))
     local main_class = utils.find_main_application_class_directory(project_root)
     local width = 60
     local height = 9

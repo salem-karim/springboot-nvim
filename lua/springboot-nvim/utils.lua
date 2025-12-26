@@ -8,7 +8,7 @@ local enum_boiler_plate = "package %s;\n\npublic enum %s{\n\n}"
 local function get_spring_boot_project_root(open_file)
     local root_pattern = { "pom.xml", "build.gradle", "build.gradle.kts", ".git" }
 
-    return lspconfig.util.root_pattern(unpack(root_pattern))(open_file)
+    return lspconfig.util.root_pattern(table.unpack(root_pattern))(open_file)
 end
 
 local function find_main_application_class_directory(root_path)
@@ -39,10 +39,14 @@ local function java_path(full_path)
     return full_path:match(pattern) .. "/java"
 end
 
+---@param buf integer
+---@param type "class"|"record"|"interface"|"enum"
+---@param package_buf integer
+---@param class_buf integer
 local function generate_java_file(buf, type, package_buf, class_buf)
-    local package_input = vim.api.nvim_buf_get_lines(tonumber(package_buf), 0, -1, false)
+    local package_input = vim.api.nvim_buf_get_lines(package_buf, 0, -1, false)
     local package_text = table.concat(package_input)
-    local class_input = vim.api.nvim_buf_get_lines(tonumber(class_buf), 0, -1, false)
+    local class_input = vim.api.nvim_buf_get_lines(class_buf, 0, -1, false)
     local class_text = table.concat(class_input)
     if class_text ~= "" then
         local dir = java_path(vim.api.nvim_buf_get_name(buf))
@@ -90,7 +94,7 @@ local function generate_java_file(buf, type, package_buf, class_buf)
                 java_file:write(java_file_content)
                 java_file:close()
             else
-                print("an issue occured generating java file")
+                print("an issue occurred generating java file")
             end
         end
         vim.cmd("q!")
