@@ -51,10 +51,27 @@ local function list_to_string(list, is_err)
     return result
 end
 
-local function handle_start_springboot_data(data)
+local function normalize_boot_version(version)
+    -- Drop .RELEASE entirely
+    version = version:gsub("%.RELEASE$", "")
+
+    -- Convert .BUILD-SNAPSHOT → -SNAPSHOT
+    version = version:gsub("%.BUILD%-SNAPSHOT$", "-SNAPSHOT")
+
+    -- Convert .M<number> → -M<number>
+    version = version:gsub("%.M(%d+)$", "-M%1")
+
+    return version
+end
+
+local function handle_start_springboot_data(data, is_boot_version)
     local spring_data = {}
     for _, value in pairs(data.values) do
-        table.insert(spring_data, value.id)
+        local id = value.id
+        if is_boot_version then
+            id = normalize_boot_version(id)
+        end
+        table.insert(spring_data, id)
     end
     return spring_data
 end
@@ -148,7 +165,7 @@ local function springboot_new_project()
     local build_types = { "maven", "gradle" }
     local languages = handle_start_springboot_data(springboot_data.language)
     local java_versions = handle_start_springboot_data(springboot_data.javaVersion)
-    local boot_versions = handle_start_springboot_data(springboot_data.bootVersion)
+    local boot_versions = handle_start_springboot_data(springboot_data.bootVersion, true)
     local packagings = handle_start_springboot_data(springboot_data.packaging)
     local build_type = get_build_type(build_types)
 
@@ -183,10 +200,10 @@ local function springboot_new_project()
     local package_name = vim.fn.input("Enter package name: ", group_id .. "." .. artifact_id)
 
     local command = string.format(
-        "spring init --boot-version=%s --java-version=%s --build=%s --dependencies=%s --groupId=%s --artifactId=%s --name=%s --package-name=%s %s",
+        "spring init --boot-version=%s --java-version=%s --type=%s --dependencies=%s --groupId=%s --artifactId=%s --name=%s --package-name=%s %s",
         boot_version,
         java_version,
-        build_type,
+        build_type .. "-project",
         dependencies,
         group_id,
         artifact_id,
