@@ -3,12 +3,19 @@ local springboot_nvim_ui = require("springboot-nvim.ui.springboot_nvim_ui")
 require("create_springboot_project")
 
 local lspconfig = require("lspconfig")
-local jdtls = require("jdtls")
 
 local on_compile_result = nil
 
 local function incremental_compile()
-    jdtls.compile("incremental", on_compile_result)
+    -- Try nvim-jdtls
+    local jdtls_ok, jdtls = pcall(require, "jdtls")
+    if jdtls_ok and jdtls.compile then
+        jdtls.compile("incremental", on_compile_result)
+        return
+    end
+
+    -- Try nvim-java
+    require("springboot-nvim.utils").nvim_java_incremental_build()
 end
 
 local function is_plugin_installed(plugin)
